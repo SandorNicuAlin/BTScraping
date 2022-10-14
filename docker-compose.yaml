@@ -1,0 +1,24 @@
+version: '3.9'
+
+networks:
+  network_bt_mysql:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql_bt
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: bt
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - network_bt_mysql
