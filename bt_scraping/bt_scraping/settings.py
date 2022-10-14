@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graph.apps.GraphConfig',
+    'scraping.apps.ScrapingConfig',
 ]
 
 MIDDLEWARE = [
