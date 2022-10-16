@@ -4,22 +4,19 @@ from rest_framework.response import Response
 from scraping.serializers.bt_serializer import BTSerializer
 from scraping.services.scraper_service import scrap_BT
 
-
-# Create your views here.
-
 @api_view(['GET'])
 def bt_scraping(request):
     if request.method == 'GET':
+        # get the data by scraping
         bt_data = scrap_BT()
-        data_to_return = []
+        # save it to DB
         for data in bt_data:
             data = {'name': data[0], 'value': data[1]}
             bt_serializer = BTSerializer(data=data)
             if bt_serializer.is_valid():
                 bt_serializer.save()
-                data_to_return.append(data)
             else:
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(data_to_return)
+        return Response(bt_data)
     else:
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

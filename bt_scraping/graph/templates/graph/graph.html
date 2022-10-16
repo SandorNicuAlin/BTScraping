@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Graph</title>
+        <script src = "https://d3js.org/d3.v4.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="container py-4">
+            <select id="selectButton" class="form-control"></select>
+            <div class="text-center my-5">
+                <div id="my_dataviz"></div>
+                <p class="text-muted"><small>*Double click on chart to zoom out</small></p>
+            </div>
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Value</th>
+                    <th scope="col">Saved at</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+                  <tr>
+                    <td>Loading..</td>
+                    <td>Loading..</td>
+                  </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <script>
+            
+            // set the dimensions and margins of the graph
+            var margin = {top: 10, right: 30, bottom: 30, left: 60},
+                width = 1000 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+            
+            // append the svg object to the body of the page
+            var svg = d3.select("#my_dataviz")
+            .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+                .attr(
+                    "transform",
+                    "translate(" + margin.left + "," + margin.top + ")",
+                );
+
+            // get the data
+            data = {{data|safe}}
+
+            // get the names
+            var names = []
+            data.forEach(value => {
+                names.push(value[0])
+            })
+
+            names = [... new Set(names)]
+
+            // parse the data
+            data = data.map(val => {return {name: val[0], value: val[1], saved_at: new Date(val[2])}});
+
+            // add the names to the select element
+            d3.select("#selectButton")
+            .selectAll('myOptions')
+            .data(names)
+            .enter()
+            .append('option')
+            .text(function (d) { return d; }) // text showed in the menu
+            .attr("value", function (d) { return d; }) // corresponding value returned by the button
+
+            // dark color generator function
+            function generateDarkColorHex() {
+                let color = "#";
+                for (let i = 0; i < 3; i++)
+                  color += ("0" + Math.floor(Math.random() * Math.pow(16, 2) / 2).toString(16)).slice(-2);
+                return color;
+            }
+
+            // light color generator function
+            function generateLightColorHex() {
+            let color = "#";
+            for (let i = 0; i < 3; i++)
+                color += ("0" + Math.floor(((1 + Math.random()) * Math.pow(16, 2)) / 2).toString(16)).slice(-2);
+            return color;
+            }
+
+            // A color scale: one color for each group
+            colors_list = []
+            for(let i=0 ; i < names.length ; i++) {
+                new_color = generateLightColorHex();
+                colors_list.push(new_color);
+            }
+            var myColor = d3.scaleOrdinal()
+            .domain(names)
+            .range(colors_list)
+
+            // Add X axis --> it is a date format
+            var x = d3.scaleTime()
+            .domain(d3.extent(data, function(d) { 
+                return d.saved_at; 
+            }))
+            .range([ 0, width ]);
+            xAxis = svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+            // Add Y axis
+            var y = d3.scaleLinear()
+            .domain([-500, d3.max(data, function(d) { return +d.value+500; })])
+            .range([ height, 0 ]);
+            svg.append("g")
+            .call(d3.axisLeft(y));
+
+            // Add a clipPath: everything out of this area won't be drawn.
+            var clip = 
+            svg
+            .append("defs")
+            .append("svg:clipPath")
+            .attr("id", "clip")
+            .append("svg:rect")
+            .attr("width", width )
+            .attr("height", height )
+            .attr("x", 0)
+            .attr("y", 0);
+
+            // Add brushing
+            var brush = d3.brushX()                   // Add the brush feature using the d3.brush function
+            .extent( [ [0,0], [width,height] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+            .on("end", updateChart)               // Each time the brush selection changes, trigger the 'updateChart' function
+
+            // Create the line variable: where both the line and the brush take place
+            var line = svg.append('g')
+            .attr("clip-path", "url(#clip)")
+
+            // Add the line
+            line.append("path")
+            .datum(data.filter((d) => { return d.name == names[0] }))
+            .attr("class", "line")  // I add the class line to be able to modify this line later on.
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function(d) { return x(d.saved_at) })
+                .y(function(d) { return y(d.value) })
+            )
+            .attr("stroke", function(d){ return myColor(d[0].name) })
+            .style("stroke-width", 4)
+            .style("fill", "none")
+
+            // Add the brushing
+            line
+            .append("g")
+                .attr("class", "brush")
+                .call(brush);
+
+            // A function that set idleTimeOut to null
+            var idleTimeout
+            function idled() { idleTimeout = null; }
+
+            // A function that update the chart for given boundaries
+            function updateChart() {
+
+                // What are the selected boundaries?
+                extent = d3.event.selection
+
+                // If no selection, back to initial coordinate. Otherwise, update X axis domain
+                if(!extent){
+                    if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
+                    x.domain([ 4,8])
+                }else{
+                    x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
+                    line.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+                }
+
+                // Update axis and line position
+                xAxis.transition().duration(1000).call(d3.axisBottom(x))
+                line
+                .select('.line')
+                .transition()
+                .duration(1000)
+                .attr("d", d3.line()
+                    .x(function(d) { return x(d.saved_at) })
+                    .y(function(d) { return y(d.value) })
+                )
+                .attr("stroke", function(d){ return myColor(d[0].name) })
+
+            }
+
+            // If user double click, reinitialize the chart
+            svg.on("dblclick",function() {
+                x.domain(d3.extent(data, function(d) { return d.saved_at; }))
+                xAxis.transition().call(d3.axisBottom(x))
+                line
+                .select('.line')
+                .transition()
+                .attr("d", d3.line()
+                .x(function(d) { return x(d.saved_at) })
+                .y(function(d) { return y(d.value) })
+                )
+                .attr("stroke", function(d){ return myColor(d[0].name) })
+
+            });
+
+            // add data to table
+            data_to_tr = data
+            .filter(val => val.name === names[0])
+            .sort((a,b) => b.saved_at - a.saved_at)
+            .map(val => 
+            `
+                <tr>
+                    <td>${val.value}</td>
+                    <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${val.saved_at.getHours()}:${val.saved_at.getMinutes()}</td>
+                </tr>
+            `);
+            document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
+
+             // A function that update the chart
+            function update(selectedGroup) {
+                
+                // Create new data with the selection?
+                var dataFilter = 
+                data
+                .filter(function(d){return d.name==selectedGroup})
+                .sort((a,b) => b.saved_at - a.saved_at)
+                
+                // change data in table
+                data_to_tr = dataFilter.map(val => 
+                `
+                    <tr>
+                        <td>${val.value}</td>
+                        <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${val.saved_at.getHours()}:${val.saved_at.getMinutes()}</td>
+                    </tr>
+                `);
+                document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
+
+                // Give these new data to update line
+
+                x.domain(d3.extent(dataFilter, function(d) { return d.saved_at; }))
+                xAxis.transition().call(d3.axisBottom(x))
+                line
+                .datum(dataFilter)
+                .select('.line')
+                .transition()
+                .duration(1000)
+                .attr("d", d3.line()
+                .x(function(d) { return x(d.saved_at) })
+                .y(function(d) { return y(d.value) })
+                )
+                .attr("stroke", function(d){ return myColor(d[0].name) })
+
+            }
+
+            // When the button is changed, run the updateChart function
+            d3.select("#selectButton").on("change", function(d) {
+                // recover the option that has been chosen
+                var selectedOption = d3.select(this).property("value")
+                // run the updateChart function with this selected option
+                update(selectedOption)
+            })
+
+        </script>
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    </body>
+</html>
