@@ -61,7 +61,7 @@
             names = [... new Set(names)]
 
             // parse the data
-            data = data.map(val => {return {name: val[0], value: val[1], saved_at: new Date(val[2])}});
+            data = data.map(val => {return {name: val[0], value: val[1], saved_at: new Date(val[2] + ' UTC')}});
 
             // add the names to the select element
             d3.select("#selectButton")
@@ -205,6 +205,14 @@
 
             });
 
+            // function that converts number to be shown as 2 digits always
+            const formattedNumber = num => {
+                return num.toLocaleString('en-US', {
+                    minimumIntegerDigits: 2,
+                    useGrouping: false
+                })
+            }
+
             // add data to table
             data_to_tr = data
             .filter(val => val.name === names[0])
@@ -213,7 +221,7 @@
             `
                 <tr>
                     <td>${val.value}</td>
-                    <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${val.saved_at.getHours()}:${val.saved_at.getMinutes()}</td>
+                    <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${formattedNumber(val.saved_at.getHours())}:${formattedNumber(val.saved_at.getMinutes())}</td>
                 </tr>
             `);
             document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
@@ -232,7 +240,7 @@
                 `
                     <tr>
                         <td>${val.value}</td>
-                        <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${val.saved_at.getHours()}:${val.saved_at.getMinutes()}</td>
+                        <td>${val.saved_at.getDate()}/${val.saved_at.getMonth()}/${val.saved_at.getFullYear()} ${formattedNumber(val.saved_at.getHours())}:${formattedNumber(val.saved_at.getMinutes())}</td>
                     </tr>
                 `);
                 document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
