@@ -1,1 +1,1 @@
-web: gunicorn bt_scraping.wsgi --capture-output
+web: gunicorn bt_scraping.wsgi --bind 0.0.0.0:8000
