@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-import django_heroku
-
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -81,18 +79,9 @@ WSGI_APPLICATION = 'bt_scraping.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql', 
-        'NAME': 'bt',
-        'USER': 'homestead',
-        'PASSWORD': 'secret',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-    }
-}
 
-DATABASES['config'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
+DATABASES = { 'default': dj_database_url.config(conn_max_age=600, ssl_require=True) } 
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -136,4 +125,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-django_heroku.settings(locals())
+try:
+    from bt_scraping.local_settings import *
+except Exception as e:
+    pass

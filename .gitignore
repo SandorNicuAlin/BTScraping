@@ -2,3 +2,4 @@
 env
 mysql
 __pycache__/
+local_settings.py
