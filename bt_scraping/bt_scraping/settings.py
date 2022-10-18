@@ -86,7 +86,7 @@ try:
     
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql', 
+            'ENGINE': 'django.db.backends.postgresql_psycopg2', 
             'NAME': database_url.path[1:],
             'USER': database_url.username,
             'PASSWORD': database_url.password,
