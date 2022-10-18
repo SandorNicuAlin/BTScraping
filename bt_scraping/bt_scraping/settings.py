@@ -18,10 +18,7 @@ import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-try:
-    database_url = parse.urlparse(os.environ['DATABASE_URL'])
-except Exception:
-    pass
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -32,7 +29,7 @@ SECRET_KEY = 'django-insecure-@kz(t)pkg#%vdhtxr-xp_=591*&mb-sd)ghr8*+8nxwqr&@vm2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost:8000', '127.0.0.1:8000', 'bt-scraping.herokuapp.com']
 
 
 # Application definition
@@ -83,7 +80,10 @@ WSGI_APPLICATION = 'bt_scraping.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 try:
+    database_url = parse.urlparse(os.environ['DATABASE_URL'])
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql', 
@@ -94,8 +94,13 @@ try:
             'PORT': database_url.port,
         }
     }
+    
+    from bt_scraping.local_settings import *
+    
 except Exception:
-    pass    
+    pass
+
+  
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -138,10 +143,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-try:
-    from bt_scraping.local_settings import *
-except Exception as e:
-    pass
 
 LOGGING = {
     "version": 1,
