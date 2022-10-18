@@ -19,7 +19,7 @@ from urllib import parse
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-database_url = parse.urlparse(os.environ['CLEARDB_DATABASE_URL'])
+database_url = parse.urlparse(os.environ['DATABASE_URL'])
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'bt_scraping.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', 
+        'ENGINE': 'django.db.backends.postgresql', 
         'NAME': database_url.path[1:],
         'USER': database_url.username,
         'PASSWORD': database_url.password,
