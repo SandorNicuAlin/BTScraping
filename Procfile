@@ -1,1 +1,1 @@
-web: gunicorn --chdir /app/bt_scraping --bind 0.0.0.0:8000 bt_scraping.wsgi
+web: gunicorn --chdir /app/bt_scraping bt_scraping.wsgi
