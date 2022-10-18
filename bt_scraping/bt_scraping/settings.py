@@ -150,7 +150,7 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["file"]},
     "handlers": {
         "file": {
-            "level": "INFO",
+            "level": "WARNING",
             "class": "logging.FileHandler",
             "filename": os.path.join(BASE_DIR, 'logs/django.log'),
             "formatter": "app",
