@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 from urllib import parse
-import django_heroku
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,7 +28,7 @@ SECRET_KEY = 'django-insecure-@kz(t)pkg#%vdhtxr-xp_=591*&mb-sd)ghr8*+8nxwqr&@vm2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost:8000', '127.0.0.1:8000', 'bt-scraping.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'bt-data-scraper.herokuapp.com']
 
 
 # Application definition
@@ -82,6 +81,10 @@ WSGI_APPLICATION = 'bt_scraping.wsgi.application'
 
 
 try:
+    
+    from bt_scraping.local_settings import *
+    
+except Exception:
     database_url = parse.urlparse(os.environ['DATABASE_URL'])
     
     DATABASES = {
@@ -95,12 +98,10 @@ try:
         }
     }
     
-    from bt_scraping.local_settings import *
+    import django_heroku
+    django_heroku.settings(locals())
     
-except Exception:
-    pass
 
-  
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -174,4 +175,3 @@ LOGGING = {
     },
 }
 
-django_heroku.settings(locals())
