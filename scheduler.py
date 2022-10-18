@@ -1,3 +1,5 @@
 import requests
+import os
 
-r = requests.get('http://localhost:8000/scraping/bt')
+# r = requests.get(os.environ.get('HOST')+'/scraping/bt')
+print(os.getenv('DB_NAME'))
