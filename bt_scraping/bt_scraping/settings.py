@@ -142,19 +142,18 @@ try:
 except Exception as e:
     pass
 
-LOGGING = {
+LOGGING = {                                                                                                                 
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
+        'logfile': {
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/debug.log'),
+            'filename': 'server.log',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'propagate': True,
+            'handlers': ['logfile'],
         },
     },
 }
