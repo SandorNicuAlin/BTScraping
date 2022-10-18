@@ -147,7 +147,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "root": {"level": "INFO", "handlers": ["file"]},
+    "root": {"level": "WARNING", "handlers": ["file"]},
     "handlers": {
         "file": {
             "level": "WARNING",
@@ -159,7 +159,7 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["file"],
-            "level": "INFO",
+            "level": "WARNING",
             "propagate": True
         },
     },
