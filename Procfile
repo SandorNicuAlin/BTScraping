@@ -1,1 +1,1 @@
-web: gunicorn bt_scraping.wsgi
+web gunicorn bt_scraping.wsgi:application --log-file -
