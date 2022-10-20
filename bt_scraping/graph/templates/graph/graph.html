@@ -17,7 +17,6 @@
             <select id="selectButton" class="form-control"></select>
             <div class="text-center my-5">
                 <div id="my_dataviz"></div>
-                <p class="text-muted"><small>*Double click on chart to zoom out</small></p>
             </div>
             <table class="table">
                 <thead>
@@ -124,26 +123,9 @@
             yAxis = svg.append("g")
             .call(d3.axisLeft(y));
 
-            // Add a clipPath: everything out of this area won't be drawn.
-            var clip = 
-            svg
-            .append("defs")
-            .append("svg:clipPath")
-            .attr("id", "clip")
-            .append("svg:rect")
-            .attr("width", width )
-            .attr("height", height )
-            .attr("x", 0)
-            .attr("y", 0);
-
-            // Add brushing
-            var brush = d3.brushX()                   // Add the brush feature using the d3.brush function
-            .extent( [ [0,0], [width,height] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
-            .on("end", updateChart)               // Each time the brush selection changes, trigger the 'updateChart' function
-
             // Create the line variable: where both the line and the brush take place
             var line = svg.append('g')
-            .attr("clip-path", "url(#clip)")
+            .attr("clip-path", "url(#clip)") 
 
             // Add the line
             line.append("path")
@@ -160,59 +142,66 @@
             .style("stroke-width", 4)
             .style("fill", "none")
 
-            // Add the brushing
-            line
-            .append("g")
-                .attr("class", "brush")
-                .call(brush);
-
             // A function that set idleTimeOut to null
             var idleTimeout
             function idled() { idleTimeout = null; }
 
-            // A function that update the chart for given boundaries
-            function updateChart() {
+            // This allows to find the closest X index of the mouse:
+            var bisect = d3.bisector(function(d) { return d.saved_at; }).left;
 
-                // What are the selected boundaries?
-                extent = d3.event.selection
+            // Create the circle that travels along the curve of chart
+            var focus = svg
+            .append('g')
+            .append('circle')
+            .style("fill", "none")
+            .attr("stroke", "black")
+            .attr('r', 8.5)
+            .style("opacity", 0);
 
-                // If no selection, back to initial coordinate. Otherwise, update X axis domain
-                if(!extent){
-                    if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
-                    x.domain([ 4,8])
-                }else{
-                    x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
-                    line.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
-                }
+            // Create the text that travels along the curve of chart
+            var focusText = svg
+            .append('g')
+            .append('text')
+            .style("opacity", 0)
+            .attr("text-anchor", "left")
+            .attr("alignment-baseline", "middle")
 
-                // Update axis and line position
-                xAxis.transition().duration(1000).call(d3.axisBottom(x))
-                line
-                .select('.line')
-                .transition()
-                .duration(1000)
-                .attr("d", d3.line()
-                    .x(function(d) { return x(d.saved_at) })
-                    .y(function(d) { return y(d.value) })
-                )
-                .attr("stroke", function(d){ return myColor(d[0].name) })
+            // Create a rect on top of the svg area: this rectangle recovers mouse position
+            svg
+            .append('rect')
+            .style("fill", "none")
+            .style("pointer-events", "all")
+            .attr('width', width)
+            .attr('height', height)
+            .on('mouseover', mouseover)
+            .on('mousemove', mousemove)
+            .on('mouseout', mouseout);
 
+
+            // What happens when the mouse move -> show the annotations at the right positions.
+            function mouseover() {
+                focus.style("opacity", 1)
+                focusText.style("opacity",1)
             }
 
-            // If user double click, reinitialize the chart
-            svg.on("dblclick",function() {
-                x.domain(d3.extent(data, function(d) { return d.saved_at; }))
-                xAxis.transition().call(d3.axisBottom(x))
-                line
-                .select('.line')
-                .transition()
-                .attr("d", d3.line()
-                .x(function(d) { return x(d.saved_at) })
-                .y(function(d) { return y(d.value) })
-                )
-                .attr("stroke", function(d){ return myColor(d[0].name) })
+            function mousemove() {
+                // recover coordinate we need
+                var x0 = x.invert(d3.mouse(this)[0]);
+                var i = bisect(data.filter(el => el.name === document.getElementById('selectButton').value), x0, 1);
+                selectedData = data.filter(el => el.name === document.getElementById('selectButton').value)[i]
+                focus
+                .attr("cx", x(selectedData.saved_at))
+                .attr("cy", y(selectedData.value))
+                focusText
+                .html(selectedData.value)
+                .attr("x", x(selectedData.saved_at)+15)
+                .attr("y", y(selectedData.value))
+            }
 
-            });
+            function mouseout() {
+                focus.style("opacity", 0)
+                focusText.style("opacity", 0)
+            }
 
             // add data to table
             data_to_tr = data
@@ -280,6 +269,63 @@
                 .y(function(d) { return y(d.value) })
                 )
                 .attr("stroke", function(d){ return myColor(d[0].name) })
+
+                // This allows to find the closest X index of the mouse:
+                var bisect = d3.bisector(function(d) { return d.saved_at; }).left;
+
+                // Create the circle that travels along the curve of chart
+                var focus = svg
+                .append('g')
+                .append('circle')
+                .style("fill", "none")
+                .attr("stroke", "black")
+                .attr('r', 8.5)
+                .style("opacity", 0);
+
+                // Create the text that travels along the curve of chart
+                var focusText = svg
+                .append('g')
+                .append('text')
+                .style("opacity", 0)
+                .attr("text-anchor", "left")
+                .attr("alignment-baseline", "middle");
+
+                // Create a rect on top of the svg area: this rectangle recovers mouse position
+                svg
+                .append('rect')
+                .style("fill", "none")
+                .style("pointer-events", "all")
+                .attr('width', width)
+                .attr('height', height)
+                .on('mouseover', mouseover)
+                .on('mousemove', mousemove)
+                .on('mouseout', mouseout);
+
+
+                // What happens when the mouse move -> show the annotations at the right positions.
+                function mouseover() {
+                    focus.style("opacity", 1)
+                    focusText.style("opacity",1)
+                }
+
+                function mousemove() {
+                    // recover coordinate we need
+                    var x0 = x.invert(d3.mouse(this)[0]);
+                    var i = bisect(new_data, x0, 1);
+                    selectedData = new_data[i]
+                    focus
+                    .attr("cx", x(selectedData.saved_at))
+                    .attr("cy", y(selectedData.value))
+                    focusText
+                    .html(selectedData.value)
+                    .attr("x", x(selectedData.saved_at)+15)
+                    .attr("y", y(selectedData.value))
+                }
+
+                function mouseout() {
+                    focus.style("opacity", 0)
+                    focusText.style("opacity", 0)
+                }
 
                 update(selectedOption)
             })
