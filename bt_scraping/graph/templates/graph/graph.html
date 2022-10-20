@@ -69,6 +69,8 @@
 
             // parse the data
             data = data.map(val => {return {name: val[0], value: val[1], saved_at: moment.utc(val[2]) }});
+            console.log(data)
+            console.log(data[0].saved_at.local().format('HH'))
 
             // add the names to the select element
             d3.select("#selectButton")
@@ -220,7 +222,7 @@
             `
                 <tr>
                     <td>${val.value}</td>
-                    <td>${val.saved_at.format('DD')}/${val.saved_at.format('MM')}/${val.saved_at.format('YYYY')} ${val.saved_at.format('HH')}:${val.saved_at.format('mm')}</td>
+                    <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')} ${val.saved_at.local().format('HH')}:${val.saved_at.local().format('mm')}</td>
                 </tr>
             `);
             document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
@@ -240,7 +242,7 @@
                 `
                     <tr>
                         <td>${val.value}</td>
-                        <td>${val.saved_at.format('DD')}/${val.saved_at.format('MM')}/${val.saved_at.format('YYYY')} ${val.saved_at.format('HH')}:${val.saved_at.format('mm')}</td>
+                        <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')} ${val.saved_at.local().format('HH')}:${val.saved_at.local().format('mm')}</td>
                     </tr>
                 `);
                 document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
