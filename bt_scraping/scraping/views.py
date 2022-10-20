@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from scraping.serializers.bt_serializer import BTSerializer
 from scraping.services.scraper_service import scrap_BT
 
-@api_view(['GET'])
+@api_view(['POST'])
 def bt_scraping(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         # get the data by scraping
         bt_data = scrap_BT()
         # save it to DB
@@ -17,6 +17,6 @@ def bt_scraping(request):
                 bt_serializer.save()
             else:
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(bt_data)
+        return Response(status=status.HTTP_201_CREATED)
     else:
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

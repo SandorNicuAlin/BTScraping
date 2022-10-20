@@ -119,9 +119,9 @@
 
             // Add Y axis
             var y = d3.scaleLinear()
-            .domain([-500, d3.max(data, function(d) { return +d.value+500; })])
+            .domain([0, d3.max(data.filter(el => el.name === document.getElementById('selectButton').value), function(d) { return +d.value+((2/100)*d.value); })])
             .range([ height, 0 ]);
-            svg.append("g")
+            yAxis = svg.append("g")
             .call(d3.axisLeft(y));
 
             // Add a clipPath: everything out of this area won't be drawn.
@@ -222,7 +222,7 @@
             `
                 <tr>
                     <td>${val.value}</td>
-                    <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')} ${val.saved_at.local().format('HH')}:${val.saved_at.local().format('mm')}</td>
+                    <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')}</td>
                 </tr>
             `);
             document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
@@ -242,13 +242,12 @@
                 `
                     <tr>
                         <td>${val.value}</td>
-                        <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')} ${val.saved_at.local().format('HH')}:${val.saved_at.local().format('mm')}</td>
+                        <td>${val.saved_at.local().format('DD')}/${val.saved_at.local().format('MM')}/${val.saved_at.local().format('YYYY')}</td>
                     </tr>
                 `);
                 document.getElementById('tbody').innerHTML = data_to_tr.toString().replaceAll(',','');
 
                 // Give these new data to update line
-
                 x.domain(d3.extent(dataFilter, function(d) { return d.saved_at; }))
                 xAxis.transition().call(d3.axisBottom(x))
                 line
@@ -266,9 +265,22 @@
 
             // When the button is changed, run the updateChart function
             d3.select("#selectButton").on("change", function(d) {
-                // recover the option that has been chosen
                 var selectedOption = d3.select(this).property("value")
-                // run the updateChart function with this selected option
+                let new_data = data.filter(el => el.name === selectedOption)
+
+                y.domain(d3.extent([0, d3.max(new_data, function(d) { return +d.value+((2/100)*d.value); })]))
+                yAxis.transition().call(d3.axisLeft(y))
+                line
+                .datum(new_data)
+                .select('.line')
+                .transition()
+                .duration(1000)
+                .attr("d", d3.line()
+                .x(function(d) { return x(d.saved_at) })
+                .y(function(d) { return y(d.value) })
+                )
+                .attr("stroke", function(d){ return myColor(d[0].name) })
+
                 update(selectedOption)
             })
 
