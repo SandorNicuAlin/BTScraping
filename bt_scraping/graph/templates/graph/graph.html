@@ -68,8 +68,6 @@
 
             // parse the data
             data = data.map(val => {return {name: val[0], value: val[1], saved_at: moment.utc(val[2]) }});
-            console.log(data)
-            console.log(data[0].saved_at.local().format('HH'))
 
             // add the names to the select element
             d3.select("#selectButton")
